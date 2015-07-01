@@ -1,0 +1,79 @@
+---
+
+#
+# setup enviroment (user acount and directories) for bigtop
+#
+
+- name: Create bigtop unix user account
+  user: name=bigtop state=present
+
+- name: Create bigtop directory
+  file: path={{ bigtop_path }} state=directory
+        owner=bigtop group=bigtop mode=0755
+
+- name: Create log directory for bigtop tests
+  file: path=/var/log/bigtop/ state=directory
+        owner=bigtop group=bigtop mode=0775
+
+#
+# install Bigtop release into {{ bigtop_path }}
+#
+
+- name: Install git
+  yum: name=git state=present
+
+- name: Clone state of Bigtop repository
+  git: repo={{ bigtop_gitrepo_url }} dest={{ bigtop_path }}
+       version={{ bigtop_version }} accept_hostkey=yes
+
+- name: Set ownership of Bigtop repository
+  command: chown -cfR bigtop:bigtop "{{ bigtop_path }}"
+  register: chown_run
+  changed_when: chown_run.stdout
+
+#
+# install puppet (expects it's available via EPEL or puppetlabs repo)
+#
+
+# TODO: force puppet 3.x
+- name: Install puppet (check that puppet has been installed)
+  yum: name=puppet state=present
+
+#
+# masterless puppet deployment (see bigtop-deploy/puppet/README.md file)
+#
+
+- name: Create /etc/puppet/hieradata/ directory
+  file: path=/etc/puppet/hieradata/ state=directory mode=0755
+
+- name: Copy bigtop hiera.yaml into /etc/puppet/
+  synchronize: src="{{ bigtop_path }}/bigtop-deploy/puppet/hiera.yaml"
+               dest=/etc/puppet/hiera.yaml
+               mode=pull
+  delegate_to: "{{inventory_hostname}}"
+
+- name: Copy bigtop hieradata into /etc/puppet/
+  synchronize: src={{ bigtop_path }}/bigtop-deploy/puppet/hieradata/bigtop/
+               dest=/etc/puppet/hieradata/bigtop/
+               archive=yes mode=pull
+  delegate_to: "{{inventory_hostname}}"
+
+- name: Create bigtop site.yaml (main config file)
+  template: src=site.yaml.j2 dest=/etc/puppet/hieradata/site.yaml
+            owner=root group=root mode=0644
+
+# TODO: with current setup, only single directory is possible, fix this
+- name: Create data directories for HDFS
+  file: path={{ hadoop_storage_dir }} state=directory
+
+# HACK: may fail and this playbook would not notice!
+# TODO: use puppet module instead (available in extra modules since ansible 2.0)
+- name: Install required puppet modules via puppet (stdlib and packaging)
+  command: puppet apply --modulepath={{ bigtop_path }} -e "include bigtop_toolchain::puppet-modules"
+
+# HACK: may fail and this playbook would not notice!
+# TODO: use puppet module instead (available in extra modules since ansible 2.0)
+- name: Run puppet apply
+  command: puppet apply -d --modulepath="bigtop-deploy/puppet/modules:/etc/puppet/modules" bigtop-deploy/puppet/manifests/site.pp
+  args:
+    chdir: "{{ bigtop_path }}"

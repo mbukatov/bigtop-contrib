@@ -1,0 +1,10 @@
+[bigtop_master]
+master.bigtop.example.com
+
+[bigtop_nodes]
+node01.bigtop.example.com
+node02.bigtop.example.com
+
+[bigtop:children]
+bigtop_master
+bigtop_nodes

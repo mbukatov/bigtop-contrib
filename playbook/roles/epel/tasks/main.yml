@@ -1,0 +1,13 @@
+---
+
+- name: Create /root/rpm directory
+  file: path=/root/rpm state=directory
+
+- name: Push packages with EPEL repository
+  copy: src={{ epel_rpm }} dest=/root/rpm/{{ epel_rpm }}
+
+- name: Install EPEL repo for RHEL 6
+  yum: pkg=/root/rpm/{{ epel_rpm }} state=installed
+
+- name: Import EPEL rpm key
+  rpm_key: state=present key=/etc/pki/rpm-gpg/RPM-GPG-KEY-EPEL-6

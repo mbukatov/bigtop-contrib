@@ -1,0 +1,16 @@
+10,11c10,11
+< if [ -f /usr/share/java-utils/java-functions ] ; then 
+<   . /usr/share/java-utils/java-functions
+---
+> if [ -f /opt/rh/maven30/root/usr/share/java-utils/java-functions ] ; then
+>   . /opt/rh/maven30/root/usr/share/java-utils/java-functions
+20c20
+< GROOVY_CONF=/etc/groovy-starter.conf
+---
+> GROOVY_CONF=/opt/rh/maven30/root/etc/groovy-starter.conf
+35,36c35,36
+< if [ -f /etc/groovy.conf ]; then
+<   . /etc/groovy.conf
+---
+> if [ -f  /opt/rh/maven30/root/etc/groovy.conf ]; then
+>   .  /opt/rh/maven30/root/etc/groovy.conf

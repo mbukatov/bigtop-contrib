@@ -1,0 +1,55 @@
+---
+
+- name: Create /root/rpm directory
+  file: path=/root/rpm state=directory
+
+- name: Push packages with maven30-rhel-6 repository
+  copy: src={{ maven_rpm }} dest=/root/rpm/{{ maven_rpm }}
+
+- name: Install Software Collections tools
+  yum: name=scl-utils state=present
+
+- name: Install Maven 3.0 Software Collection repo
+  yum: pkg=/root/rpm/{{ maven_rpm }} state=present
+
+# - name: Install OpenJDK 1.7
+#   yum: name={{ item }} state=present
+#   with_items:
+#     - java-1.7.0-openjdk
+#     - java-1.7.0-openjdk-devel
+
+# - name: Set JRE to java-1.7.0 via alternatives
+#   alternatives: name=java
+#                 path=/usr/lib/jvm/jre-1.7.0-openjdk.x86_64/bin/java
+
+# - name: Set JDK to java-1.7.0 via alternatives
+#   alternatives: name=javac
+#                 path=/usr/lib/jvm/java-1.7.0-openjdk.x86_64/bin/javac
+
+- name: Install maven and groovy (via Sorware Collections)
+  yum: name={{ item }} state=present
+  with_items:
+   - maven30
+   - maven30-groovy
+
+#
+# Temporary Hacks
+#
+
+- name: Workaround of https://github.com/ansible/ansible-modules-extras/issues/338
+  copy: src=bz1223384-hack.patch dest=/root/bz1223384-hack.patch
+
+- name: Install patch package
+  yum: name=patch state=present
+
+- name: Workaround of BZ 1223384 (broken groovy)
+  patch: src=/root/bz1223384-hack.patch
+         dest=/opt/rh/maven30/root/usr/bin/{{ item }}
+         remote_src=True
+  with_items:
+   - grape
+   - groovy
+   - groovyc
+   - groovyConsole
+   - groovysh
+   - java2groovy

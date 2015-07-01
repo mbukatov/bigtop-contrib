@@ -1,0 +1,57 @@
+---
+# This playbook deploys Bigtop Hadoop on already existing CentOS 6 cluster.
+
+- name: Apache Bigtop deployment playbook for CentOS 6
+  hosts: bigtop
+  remote_user: root
+
+  pre_tasks:
+
+   - name: Install libselinux-python (ansible requirement)
+     yum: name=libselinux-python state=present
+
+   - name: Update all packages
+     yum: name='*' state=latest
+
+  roles:
+   - epel
+   - maven30-rhel-6
+   - puppetlabs
+   - role: bigtop
+     hadoop_head_node: "{{ groups['bigtop_master'][0] }}"
+     bigtop_yumrepo_uri: "http://example.com/bigtop/bigtop-1.0.0/output/"
+
+  tasks:
+
+   - name: Install additional packages
+     yum: name={{ item }} state=present enablerepo=epel
+     with_items:
+      - htop
+      - tmux
+      - strace
+      - ltrace
+      - libxml2
+      - xmlstarlet
+      - vim
+      - jq
+      - man
+      - tree
+      - lsof
+      - wget
+      - curl
+      - unzip
+
+
+- name: Setup of HDFS home directory for bigtop user
+  hosts: bigtop_master
+  remote_user: root
+  become: yes
+  become_user: hdfs
+  become_method: su
+
+  tasks:
+
+   - name: Create the HDFS home directory for bigtop
+     command: hadoop fs -mkdir -p /user/bigtop
+   - name: Set ownership of bigtop's HDFS home
+     command: hadoop fs -chown bigtop /user/bigtop

@@ -1,0 +1,13 @@
+---
+
+- name: Create /root/rpm directory
+  file: path=/root/rpm state=directory
+
+- name: Push packages with puppetlabs repository
+  copy: src={{ puppetlabs_rpm }} dest=/root/rpm/{{ puppetlabs_rpm }}
+
+- name: Install puppetlabs repo for RHEL 6
+  yum: pkg=/root/rpm/{{ puppetlabs_rpm }} state=installed
+
+- name: Import puppetlabs rpm key
+  rpm_key: state=present key=/etc/pki/rpm-gpg/RPM-GPG-KEY-puppetlabs

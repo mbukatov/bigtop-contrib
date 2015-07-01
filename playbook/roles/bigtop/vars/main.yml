@@ -1,0 +1,12 @@
+---
+bigtop_path: /opt/bigtop
+puppet_path: "{{ bigtop_path}}/bigtop-deploy/puppet"
+
+bigtop_gitrepo_url: https://github.com/apache/bigtop.git
+bigtop_version: master
+
+# values for options for puppet config file (site.yaml.j2)
+hadoop_storage_dir: "/data/1"
+jdk_package_name: "java-1.7.0-openjdk"
+#hadoop_head_node: define when you include this role in a playbook
+#bigtop_yumrepo_uri: define when you include this role in a playbook
