@@ -1,0 +1,31 @@
+---
+
+- hosts: bigtop
+  remote_user: root
+  vars:
+    state: started
+
+  tasks:
+
+   - name: Hadoop services on all nodes
+     service: name={{ item }} enabled=true state={{ state }}
+     with_items:
+      - hadoop-hdfs-datanode
+      - hadoop-yarn-nodemanager
+
+
+- hosts: bigtop_master
+  remote_user: root
+  vars:
+    state: started
+
+  tasks:
+
+   - name: Hadoop services on master node
+     service: name={{ item }} enabled=true state={{ state }}
+     with_items:
+      - hadoop-hdfs-namenode
+      - hadoop-hdfs-secondarynamenode
+      - hadoop-yarn-resourcemanager
+      - hadoop-yarn-proxyserver
+      - hadoop-mapreduce-historyserver
